@@ -67,8 +67,8 @@ namespace YukiWorkshop {
 		void set_bits_per_word(uint8_t __bits_per_word);
 		void set_max_speed_hz(uint32_t __max_speed_hz);
 
-		uint16_t transfer(uint16_t data, uint16_t __delay_usecs = 0, bool __cs_change = true, uint8_t __word_delay_usecs = 0);
-		void transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, uint16_t __delay_usecs = 0, bool __cs_change = true, uint8_t __word_delay_usecs = 0);
+		uint16_t transfer(uint16_t data, bool __cs_change = true, uint16_t __delay_usecs = 0, uint8_t __word_delay_usecs = 0);
+		void transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, bool __cs_change = true, uint16_t __delay_usecs = 0, uint8_t __word_delay_usecs = 0);
 //		void transfer(std::vector<SPPI_Transfer>& __transfers);
 
 		template <typename T>

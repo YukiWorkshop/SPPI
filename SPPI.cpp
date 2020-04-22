@@ -107,19 +107,19 @@ void SPPI::set_max_speed_hz(uint32_t __max_speed_hz) {
 	max_speed_hz_ = __max_speed_hz;
 }
 
-uint16_t SPPI::transfer(uint16_t data, uint16_t __delay_usecs, bool __cs_change, uint8_t __word_delay_usecs) {
+uint16_t SPPI::transfer(uint16_t data, bool __cs_change, uint16_t __delay_usecs, uint8_t __word_delay_usecs) {
 	if (bits_per_word_ > 8) {
 		data = htobe16(data);
-		transfer(&data, &data, 2);
+		transfer(&data, &data, 2, __cs_change, __delay_usecs, __word_delay_usecs);
 		return data;
 	} else {
 		uint8_t buf = data;
-		transfer(&buf, &buf, 1);
+		transfer(&buf, &buf, 1, __cs_change, __delay_usecs, __word_delay_usecs);
 		return buf;
 	}
 }
 
-void SPPI::transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, uint16_t __delay_usecs, bool __cs_change,
+void SPPI::transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, bool __cs_change, uint16_t __delay_usecs,
 		    uint8_t __word_delay_usecs) {
 	spi_ioc_transfer tr{0};
 	tr.tx_buf = (__u64)__tx_buf;
