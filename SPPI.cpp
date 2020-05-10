@@ -45,7 +45,7 @@ ssize_t SPPI::write_all(int __fd, const void *__buf, size_t __n) {
 	size_t written = 0;
 
 	while (written < __n) {
-		ssize_t rc = write(__fd, (uint8_t *)__buf + written, __n - written);
+		ssize_t rc = ::write(__fd, (uint8_t *)__buf + written, __n - written);
 		if (rc > 0) {
 			written += rc;
 		} else if (rc == 0) {
@@ -121,12 +121,13 @@ uint16_t SPPI::transfer(uint16_t data, bool __cs_change, uint16_t __delay_usecs,
 
 void SPPI::transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, bool __cs_change, uint16_t __delay_usecs,
 		    uint8_t __word_delay_usecs) {
+	
 	spi_ioc_transfer tr{0};
 	tr.tx_buf = (__u64)__tx_buf;
 	tr.rx_buf = (__u64)__rx_buf;
 	tr.len = __len;
 	tr.delay_usecs = __delay_usecs;
-	tr.cs_change = __cs_change;
+	tr.cs_change = __cs_change ? 1 : 0;
 	tr.word_delay_usecs = __word_delay_usecs;
 	tr.speed_hz = max_speed_hz_;
 	tr.bits_per_word = bits_per_word_;
@@ -151,6 +152,18 @@ void SPPI::send(const void *__tx_buf, uint32_t __len) {
 }
 
 void SPPI::recv(void *__rx_buf, uint32_t __len) {
-	if (read(fd, __rx_buf, __len) < 0)
+	if (::read(fd, __rx_buf, __len) < 0)
 		throw std::system_error(errno, std::system_category(), "failed to recv");
+}
+
+void
+SPPI::write(const void *__tx_buf, uint32_t __len, bool __cs_change, uint16_t __delay_usecs, uint8_t __word_delay_usecs) {
+	std::vector<uint8_t> discard(__len);
+	transfer(__tx_buf, discard.data(), __len, __cs_change, __delay_usecs, __word_delay_usecs);
+}
+
+void SPPI::read(void *__rx_buf, uint32_t __len, uint8_t __pad_value, bool __cs_change, uint16_t __delay_usecs,
+		uint8_t __word_delay_usecs) {
+	std::vector<uint8_t> whatever(__len, __pad_value);
+	transfer(whatever.data(), __rx_buf, __len, __cs_change, __delay_usecs, __word_delay_usecs);
 }

@@ -54,6 +54,7 @@ namespace YukiWorkshop {
 		void __init();
 		void __init_params(int __mode, int __bits_per_word, int __max_speed_hz);
 
+
 		static ssize_t write_all(int __fd, const void *__buf, size_t __n);
 	public:
 		explicit SPPI(const std::string& __device_path, int __mode = -1, int __bits_per_word = -1, int __max_speed_hz = -1);
@@ -70,6 +71,10 @@ namespace YukiWorkshop {
 		uint16_t transfer(uint16_t data, bool __cs_change = true, uint16_t __delay_usecs = 0, uint8_t __word_delay_usecs = 0);
 		void transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, bool __cs_change = true, uint16_t __delay_usecs = 0, uint8_t __word_delay_usecs = 0);
 //		void transfer(std::vector<SPPI_Transfer>& __transfers);
+
+		void write(const void *__tx_buf, uint32_t __len, bool __cs_change = true, uint16_t __delay_usecs = 0, uint8_t __word_delay_usecs = 0);
+
+		void read(void *__rx_buf, uint32_t __len, uint8_t __pad_value = 0, bool __cs_change = true, uint16_t __delay_usecs = 0, uint8_t __word_delay_usecs = 0);
 
 		template <typename T>
 		void transfer(std::vector<T> &__tx_buf, std::vector<T> &__rx_buf) {

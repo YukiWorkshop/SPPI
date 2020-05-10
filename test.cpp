@@ -16,14 +16,26 @@
 using namespace YukiWorkshop;
 
 int main() {
-	SPPI s("/dev/spidev0.0");
+	SPPI s("/dev/spidev0.1");
 
 	std::cout << "Device: " << s.path() << "\n";
 	std::cout << "Mode: " << s.mode() << "\n";
 	std::cout << "Bits per word: " << +s.bits_per_word() << "\n";
 	std::cout << "Max speed: " << s.max_speed_hz() << " Hz\n";
 
-	std::cout << "Transfer test: " << std::hex << +s.transfer(0x00) << "\n";
+//	s.select();
+	std::cout << "Transfer test: " << std::hex << +s.transfer(0x00, false) << "\n";
+
+//	while (1) {
+//		s.transfer(0x00, true);
+//	}
+
+	sleep(5);
+//	s.deselect();
+	s.transfer(0x00, true);
+//	sleep(5);
+
+
 
 	return 0;
 }
