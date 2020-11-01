@@ -128,7 +128,9 @@ void SPPI::transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, bool _
 	tr.len = __len;
 	tr.delay_usecs = __delay_usecs;
 	tr.cs_change = __cs_change ? 1 : 0;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,2,0)
 	tr.word_delay_usecs = __word_delay_usecs;
+#endif
 	tr.speed_hz = max_speed_hz_;
 	tr.bits_per_word = bits_per_word_;
 

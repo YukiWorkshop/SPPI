@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/types.h>
+#include <linux/version.h>
 #include <linux/spi/spidev.h>
 
 
@@ -33,7 +34,9 @@ namespace YukiWorkshop {
 			memset(this, 0, sizeof(spi_ioc_transfer));
 			len = __len;
 			delay_usecs = __delay_usecs;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,2,0)
 			word_delay_usecs = __word_delay_usecs;
+#endif
 			cs_change = __cs_change ? 1 : 0;
 			tx_buf = (__u64)__tx_buf;
 			rx_buf = (__u64)__rx_buf;
