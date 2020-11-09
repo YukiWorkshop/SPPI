@@ -10,6 +10,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
 
+#pragma once
+
 #include <string>
 #include <vector>
 #include <algorithm>
