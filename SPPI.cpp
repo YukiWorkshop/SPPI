@@ -25,9 +25,13 @@ void SPPI::__init(int __mode, int __bits_per_word, int __max_speed_hz) {
 		throw std::system_error(errno, std::system_category(), "failed to open device");
 
 	if (__mode > 0)
-		set_mode(__mode|SPI_NO_CS);
-	else
-		set_mode(mode()|SPI_NO_CS);
+		set_mode(__mode|(custom_chip_selector_ ? SPI_NO_CS : 0));
+	else {
+		if (custom_chip_selector_)
+			set_mode(mode() | SPI_NO_CS);
+		else
+			mode_ = mode();
+	}
 
 	if (__bits_per_word > 0)
 		set_bits_per_word(__bits_per_word);
@@ -126,7 +130,7 @@ uint16_t SPPI::transfer(uint16_t data, bool __cs_change, uint16_t __delay_usecs,
 
 void SPPI::transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, bool __cs_change, uint16_t __delay_usecs,
 		    uint8_t __word_delay_usecs) {
-	
+
 	spi_ioc_transfer tr{0};
 	tr.tx_buf = (__u64)__tx_buf;
 	tr.rx_buf = (__u64)__rx_buf;
