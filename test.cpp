@@ -23,19 +23,7 @@ int main() {
 	std::cout << "Bits per word: " << +s.bits_per_word() << "\n";
 	std::cout << "Max speed: " << s.max_speed_hz() << " Hz\n";
 
-//	s.select();
 	std::cout << "Transfer test: " << std::hex << +s.transfer(0x00, false) << "\n";
-
-//	while (1) {
-//		s.transfer(0x00, true);
-//	}
-
-	sleep(5);
-//	s.deselect();
-	s.transfer(0x00, true);
-//	sleep(5);
-
-
 
 	return 0;
 }

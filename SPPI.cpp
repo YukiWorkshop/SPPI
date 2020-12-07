@@ -14,7 +14,8 @@
 
 using namespace YukiWorkshop;
 
-void SPPI::__init() {
+
+void SPPI::__init(int __mode, int __bits_per_word, int __max_speed_hz) {
 	page_size = sysconf(_SC_PAGESIZE);
 	if (page_size == -1)
 		throw std::system_error(errno, std::system_category(), "failed to get page size");
@@ -22,13 +23,11 @@ void SPPI::__init() {
 	fd = open(path_.c_str(), O_RDWR);
 	if (page_size == -1)
 		throw std::system_error(errno, std::system_category(), "failed to open device");
-}
 
-void SPPI::__init_params(int __mode, int __bits_per_word, int __max_speed_hz) {
 	if (__mode > 0)
-		set_mode(__mode);
+		set_mode(__mode|SPI_NO_CS);
 	else
-		mode_ = mode();
+		set_mode(mode()|SPI_NO_CS);
 
 	if (__bits_per_word > 0)
 		set_bits_per_word(__bits_per_word);
@@ -45,7 +44,7 @@ ssize_t SPPI::write_all(int __fd, const void *__buf, size_t __n) {
 	size_t written = 0;
 
 	while (written < __n) {
-		ssize_t rc = ::write(__fd, (uint8_t *)__buf + written, __n - written);
+		ssize_t rc = ::write(__fd, (const uint8_t *)__buf + written, __n - written);
 		if (rc > 0) {
 			written += rc;
 		} else if (rc == 0) {
@@ -60,8 +59,14 @@ ssize_t SPPI::write_all(int __fd, const void *__buf, size_t __n) {
 
 SPPI::SPPI(const std::string &__device_path, int __mode, int __bits_per_word, int __max_speed_hz) {
 	path_ = __device_path;
-	__init();
-	__init_params(__mode, __bits_per_word, __max_speed_hz);
+	__init(__mode, __bits_per_word, __max_speed_hz);
+}
+
+SPPI::SPPI(const std::string& __device_path, std::function<void(bool)> __custom_chip_selector, int __mode, int __bits_per_word, int __max_speed_hz) {
+	custom_chip_selector_ = std::move(__custom_chip_selector);
+
+	path_ = __device_path;
+	__init(__mode, __bits_per_word, __max_speed_hz);
 }
 
 const std::string &SPPI::path() const noexcept {
@@ -134,7 +139,34 @@ void SPPI::transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, bool _
 	tr.speed_hz = max_speed_hz_;
 	tr.bits_per_word = bits_per_word_;
 
-	if (ioctl(fd, SPI_IOC_MESSAGE(1), &tr) < 0)
+	errno = 0;
+
+	int rc_lock;
+
+	do {
+		rc_lock = flock(fd, LOCK_EX);
+	} while (errno == EINTR);
+
+	if (rc_lock < 0)
+		throw std::system_error(errno, std::system_category(), "failed to lock device");
+
+	if (__cs_change) {
+		if (custom_chip_selector_)
+			custom_chip_selector_(true);
+	}
+
+	int rc_ioc = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+
+	if (__cs_change) {
+		if (custom_chip_selector_)
+			custom_chip_selector_(false);
+	}
+
+	do {
+		flock(fd, LOCK_UN);
+	} while (errno == EINTR);
+
+	if (rc_ioc < 0)
 		throw std::system_error(errno, std::system_category(), "failed to transfer");
 }
 

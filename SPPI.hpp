@@ -13,8 +13,10 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <algorithm>
+#include <functional>
 #include <system_error>
 
 #include <cstring>
@@ -23,6 +25,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <sys/file.h>
 #include <linux/types.h>
 #include <linux/version.h>
 #include <linux/spi/spidev.h>
@@ -56,13 +59,14 @@ namespace YukiWorkshop {
 		uint8_t bits_per_word_ = 0;
 		uint32_t max_speed_hz_ = 0;
 
-		void __init();
-		void __init_params(int __mode, int __bits_per_word, int __max_speed_hz);
+		std::function<void(bool)> custom_chip_selector_;
 
+		void __init(int __mode, int __bits_per_word, int __max_speed_hz);
 
 		static ssize_t write_all(int __fd, const void *__buf, size_t __n);
 	public:
 		explicit SPPI(const std::string& __device_path, int __mode = -1, int __bits_per_word = -1, int __max_speed_hz = -1);
+		SPPI(const std::string& __device_path, std::function<void(bool)> __custom_chip_selector, int __mode = -1, int __bits_per_word = -1, int __max_speed_hz = -1);
 
 		const std::string& path() const noexcept;
 		uint32_t mode() const;
@@ -75,7 +79,6 @@ namespace YukiWorkshop {
 
 		uint16_t transfer(uint16_t data, bool __cs_change = true, uint16_t __delay_usecs = 0, uint8_t __word_delay_usecs = 0);
 		void transfer(const void *__tx_buf, void *__rx_buf, uint32_t __len, bool __cs_change = true, uint16_t __delay_usecs = 0, uint8_t __word_delay_usecs = 0);
-//		void transfer(std::vector<SPPI_Transfer>& __transfers);
 
 		void write(const void *__tx_buf, uint32_t __len, bool __cs_change = true, uint16_t __delay_usecs = 0, uint8_t __word_delay_usecs = 0);
 
